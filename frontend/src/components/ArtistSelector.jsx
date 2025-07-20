@@ -19,7 +19,7 @@ export default function ArtistSelector({ artists, setArtists }) {
 
   // When user types, call backend to search
   const handleInputChange = (inputValue) => {
-    if (inputValue.length < 2) return;
+    if (inputValue.length < 2) return inputValue;
     searchArtists(inputValue).then(res => {
       setOptions(
         res.data.map(a => ({
@@ -28,6 +28,7 @@ export default function ArtistSelector({ artists, setArtists }) {
         }))
       );
     });
+    return inputValue; // <-- This is important!
   };
 
   return (
