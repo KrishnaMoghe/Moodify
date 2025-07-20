@@ -121,6 +121,69 @@ router.post("/generate", async (req, res) => {
   }
 });
 
+// Add this test route to your backend
+router.get("/test-spotify-apis", async (req, res) => {
+  const accessToken = req.cookies.access_token;
+  if (!accessToken) return res.status(401).json({ error: "No access token" });
+
+  const results = {};
+
+  try {
+    // Test 1: User Profile (should work)
+    console.log("Testing user profile...");
+    const profile = await axios.get("https://api.spotify.com/v1/me", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    results.profile = { status: "SUCCESS", data: profile.data.display_name };
+  } catch (err) {
+    results.profile = { status: "FAILED", error: err.response?.status };
+  }
+
+  try {
+    // Test 2: Top Artists (should work if scope is correct)
+    console.log("Testing top artists...");
+    const topArtists = await axios.get("https://api.spotify.com/v1/me/top/artists?limit=1", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    results.topArtists = { status: "SUCCESS", count: topArtists.data.items.length };
+  } catch (err) {
+    results.topArtists = { status: "FAILED", error: err.response?.status };
+  }
+
+  try {
+    // Test 3: Search (should work)
+    console.log("Testing search...");
+    const search = await axios.get("https://api.spotify.com/v1/search", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: { q: "taylor swift", type: "artist", limit: 1 }
+    });
+    results.search = { status: "SUCCESS", count: search.data.artists.items.length };
+  } catch (err) {
+    results.search = { status: "FAILED", error: err.response?.status };
+  }
+
+  try {
+    // Test 4: Recommendations (this is failing)
+    console.log("Testing recommendations...");
+    const recommendations = await axios.get("https://api.spotify.com/v1/recommendations", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: { 
+        seed_artists: "06HL4z0CvFAxyc27GXpf02", // Taylor Swift
+        limit: 5 
+      }
+    });
+    results.recommendations = { status: "SUCCESS", count: recommendations.data.tracks.length };
+  } catch (err) {
+    results.recommendations = { 
+      status: "FAILED", 
+      error: err.response?.status,
+      message: err.response?.data 
+    };
+  }
+
+  res.json(results);
+});
+
 
 // 3. Generate playlist
 
