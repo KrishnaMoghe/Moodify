@@ -30,7 +30,7 @@ router.get("/top-artists", async (req, res) => {
 // 2. Search artist by name (for multi-select)
 // 3. Generate playlist
 router.post("/generate", async (req, res) => {
-  res.json({ playlistUrl: "https://open.spotify.com/playlist/3QJgiAiV8sxrsEJlJ8ok2m" });
+  // res.json({ playlistUrl: "https://open.spotify.com/playlist/3QJgiAiV8sxrsEJlJ8ok2m" });
   const accessToken = req.cookies.access_token;
   if (!accessToken) return res.status(401).json({ error: "No access token" });
   
