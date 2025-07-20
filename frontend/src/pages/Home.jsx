@@ -16,10 +16,10 @@ export default function Home() {
   useEffect(() => {
     console.log("Current auth state:", { isAuthenticated, displayName });
     console.log("All cookies:", document.cookie);
-    
+
     const params = new URLSearchParams(window.location.search);
     const name = params.get("displayName");
-    
+
     if (name) {
       // User just returned from Spotify OAuth
       setDisplayName(name);
@@ -31,7 +31,7 @@ export default function Home() {
       setDisplayName(localStorage.getItem("displayName"));
       setIsAuthenticated(true);
     }
-    
+
     setIsLoading(false);
   }, []);
 
@@ -41,13 +41,18 @@ export default function Home() {
       alert("Please select both mood and artist(s)!");
       return;
     }
-    
+    const artistIds = artists.map(a => a.value);
+    console.log("=== FRONTEND DEBUG ===");
+    console.log("Selected mood:", mood);
+    console.log("Selected artists:", artists);
+    console.log("Artist IDs being sent:", artistIds);
+    console.log("Artist IDs types:", artistIds.map(id => typeof id));
     console.log("Generating playlist with:", {
       mood,
       artistIds: artists.map(a => a.value),
       artists: artists
     });
-    
+
     try {
       const response = await generatePlaylist(
         mood,
@@ -58,7 +63,7 @@ export default function Home() {
       console.error("Playlist generation error:", err);
       console.error("Error response:", err.response?.data);
       console.error("Error status:", err.response?.status);
-      
+
       if (err.response?.status === 401) {
         alert("Session expired. Please log in again.");
         handleLogout();
@@ -69,7 +74,7 @@ export default function Home() {
       }
     }
   }
-  
+
   function handleLogout() {
     logout().then(() => {
       localStorage.removeItem("displayName");
@@ -117,7 +122,7 @@ export default function Home() {
           Logout
         </button>
       </div>
-      
+
       <form onSubmit={handleSubmit}>
         <MoodSelector mood={mood} setMood={setMood} />
         <br />

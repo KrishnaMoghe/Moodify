@@ -92,23 +92,50 @@ async function makeSpotifyRequest(accessToken, refreshToken, requestFn) {
   }
 }
 
+// Verify this function in backend/src/spotify/spotifyApi.js
 async function getRecommendations(accessToken, artists, moodParams, limit = 20) {
-  // Use up to 5 artist seed IDs
-  const seed_artists = artists.slice(0, 5).join(',');
+  console.log("=== GET RECOMMENDATIONS DEBUG ===");
+  console.log("Artists received:", artists);
+  console.log("Mood params:", moodParams);
+  
+  if (!artists || artists.length === 0) {
+    throw new Error("No artists provided for recommendations");
+  }
+  
+  // Ensure we have valid artist IDs
+  const validArtists = artists.filter(id => id && typeof id === 'string' && id.length > 0);
+  console.log("Valid artists after filtering:", validArtists);
+  
+  if (validArtists.length === 0) {
+    throw new Error("No valid artist IDs after filtering");
+  }
+  
+  const seed_artists = validArtists.slice(0, 5).join(',');
+  console.log("Seed artists string:", seed_artists);
+  
   const params = {
     seed_artists,
     limit,
     ...moodParams,
   };
-  const res = await get(
-    'https://api.spotify.com/v1/recommendations',
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      params
-    }
-  );
-  return res.data.tracks;
+  console.log("Request params:", params);
+  
+  try {
+    const res = await axios.get(
+      'https://api.spotify.com/v1/recommendations',
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params
+      }
+    );
+    console.log("Spotify recommendations response status:", res.status);
+    return res.data.tracks;
+  } catch (error) {
+    console.error("Spotify recommendations API error:", error.response?.status, error.response?.data);
+    throw error;
+  }
 }
+
 
 async function createPlaylist(accessToken, userId, name, description) {
   const res = await post(
