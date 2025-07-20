@@ -7,33 +7,48 @@ export default function ArtistSelector({ artists, setArtists }) {
   const [error, setError] = useState(null);
 
   // Load user's top artists with debugging
-  useEffect(() => {
-    const loadTopArtists = async () => {
-      try {
-        console.log("Attempting to load top artists...");
-        const res = await getTopArtists();
-        console.log("Top artists response:", res.data);
+  // useEffect(() => {
+  //   const loadTopArtists = async () => {
+  //     try {
+  //       console.log("Attempting to load top artists...");
+  //       const res = await getTopArtists();
+  //       console.log("Top artists response:", res.data);
         
-        if (res.data && res.data.length > 0) {
-          const artistOptions = res.data.map(a => ({
-            value: a.id,
-            label: a.name,
-          }));
-          console.log("Mapped artist options:", artistOptions);
-          setOptions(artistOptions);
-        } else {
-          console.log("No top artists found in response");
-          setError("No top artists found. Try searching for artists instead.");
-        }
-      } catch (error) {
-        console.error("Error loading top artists:", error);
-        console.error("Error details:", error.response?.data);
-        setError(`Error: ${error.response?.status || error.message}`);
-      }
-    };
+  //       if (res.data && res.data.length > 0) {
+  //         const artistOptions = res.data.map(a => ({
+  //           value: a.id,
+  //           label: a.name,
+  //         }));
+  //         console.log("Mapped artist options:", artistOptions);
+  //         setOptions(artistOptions);
+  //       } else {
+  //         console.log("No top artists found in response");
+  //         setError("No top artists found. Try searching for artists instead.");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error loading top artists:", error);
+  //       console.error("Error details:", error.response?.data);
+  //       setError(`Error: ${error.response?.status || error.message}`);
+  //     }
+  //   };
     
-    loadTopArtists();
-  }, []);
+  //   loadTopArtists();
+  // }, []);
+
+// In your ArtistSelector component, temporarily use known valid artists
+useEffect(() => {
+  // Known valid Spotify artists for testing
+  const testArtists = [
+    { value: "06HL4z0CvFAxyc27GXpf02", label: "Taylor Swift" },
+    { value: "3TVXtAsR1Inumwj472S9r4", label: "Drake" },
+    { value: "1uNFoZAHBGtllmzznpCI3s", label: "Justin Bieber" },
+    { value: "66CXWjxzNUsdJxJ2JdwvnR", label: "Ariana Grande" },
+    { value: "1McMsnEElThX1knmY4oliG", label: "Olivia Rodrigo" }
+  ];
+  
+  setOptions(testArtists);
+}, []);
+
 
   // When user types, call backend to search
   const handleInputChange = async (inputValue) => {

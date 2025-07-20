@@ -68,16 +68,68 @@ async function getUserTopArtists(accessToken, limit = 10) {
   return res.data.items;
 }
 
+// In backend/src/spotify/spotifyApi.js
+
 async function searchArtists(accessToken, query) {
-  const res = await get(
-    'https://api.spotify.com/v1/search',
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      params: { q: query, type: "artist", limit: 5 }
-    }
-  );
-  return res.data.artists.items;
+  console.log("=== SEARCH ARTISTS DEBUG ===");
+  console.log("Search query:", query);
+  
+  try {
+    const res = await axios.get(
+      'https://api.spotify.com/v1/search',
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: { q: query, type: "artist", limit: 5 }
+      }
+    );
+    
+    console.log("Search API response status:", res.status);
+    console.log("Found artists:", res.data.artists.items.length);
+    
+    // Debug each artist
+    res.data.artists.items.forEach((artist, index) => {
+      console.log(`Artist ${index}:`, {
+        id: artist.id,
+        name: artist.name,
+        popularity: artist.popularity,
+        href: artist.href
+      });
+    });
+    
+    return res.data.artists.items;
+  } catch (error) {
+    console.error("Search artists error:", error.response?.data);
+    throw error;
+  }
 }
+
+async function getUserTopArtists(accessToken, limit = 10) {
+  console.log("=== GET TOP ARTISTS DEBUG ===");
+  
+  try {
+    const res = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=' + limit, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    
+    console.log("Top artists API response status:", res.status);
+    console.log("Found top artists:", res.data.items.length);
+    
+    // Debug each top artist
+    res.data.items.forEach((artist, index) => {
+      console.log(`Top Artist ${index}:`, {
+        id: artist.id,
+        name: artist.name,
+        popularity: artist.popularity
+      });
+    });
+    
+    return res.data.items;
+  } catch (error) {
+    console.error("Get top artists error:", error.response?.data);
+    throw error;
+  }
+}
+
 // In spotify/spotifyApi.js
 async function makeSpotifyRequest(accessToken, refreshToken, requestFn) {
   try {
