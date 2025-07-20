@@ -33,7 +33,7 @@ router.get("/callback", async (req, res) => {
     });
 
     // Redirect to your frontend (update this URL)
-    res.redirect(`http://localhost:3000/?displayName=${encodeURIComponent(profile.display_name)}`);
+    res.redirect(`${FRONTEND_URI}/?displayName=${encodeURIComponent(profile.display_name)}`);
   } catch (err) {
     res.status(500).send("Error authenticating");
   }

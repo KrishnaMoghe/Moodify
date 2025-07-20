@@ -78,6 +78,19 @@ async function searchArtists(accessToken, query) {
   );
   return res.data.artists.items;
 }
+// In spotify/spotifyApi.js
+async function makeSpotifyRequest(accessToken, refreshToken, requestFn) {
+  try {
+    return await requestFn(accessToken);
+  } catch (error) {
+    if (error.response?.status === 401 && refreshToken) {
+      // Try to refresh token
+      const newTokens = await refreshAccessToken(refreshToken);
+      return await requestFn(newTokens.access_token);
+    }
+    throw error;
+  }
+}
 
 async function getRecommendations(accessToken, artists, moodParams, limit = 20) {
   // Use up to 5 artist seed IDs

@@ -42,6 +42,12 @@ export default function Home() {
       return;
     }
     
+    console.log("Generating playlist with:", {
+      mood,
+      artistIds: artists.map(a => a.value),
+      artists: artists
+    });
+    
     try {
       const response = await generatePlaylist(
         mood,
@@ -50,15 +56,20 @@ export default function Home() {
       setPlaylistUrl(response.data.playlistUrl);
     } catch (err) {
       console.error("Playlist generation error:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      
       if (err.response?.status === 401) {
         alert("Session expired. Please log in again.");
         handleLogout();
+      } else if (err.response?.status === 500) {
+        alert(`Server error: ${err.response?.data?.details || 'Unknown error'}`);
       } else {
         alert("Error generating playlist. Please try again.");
       }
     }
   }
-
+  
   function handleLogout() {
     logout().then(() => {
       localStorage.removeItem("displayName");
