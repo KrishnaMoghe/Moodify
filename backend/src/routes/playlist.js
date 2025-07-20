@@ -4,16 +4,28 @@ import * as moodMappings from "../utils/moodMappings.js";
 import { getUserTopArtists, searchArtists, getRecommendations, getUserProfile, createPlaylist, addTracksToPlaylist } from "../spotify/spotifyApi.js";
 
 // 1. Get user's top artists (for artist picker)
+// In backend/src/routes/playlist.js, add better error handling
 router.get("/top-artists", async (req, res) => {
   const accessToken = req.cookies.access_token;
-  if (!accessToken) return res.sendStatus(401);
+  if (!accessToken) {
+    return res.status(401).json({ error: "No access token" });
+  }
+  
   try {
     const artists = await getUserTopArtists(accessToken, 15);
     res.json(artists);
   } catch (err) {
-    res.sendStatus(500);
+    console.error("Spotify API Error:", err.response?.data);
+    if (err.response?.status === 401) {
+      // Token expired, clear cookies and return 401
+      res.clearCookie("access_token");
+      res.clearCookie("refresh_token");
+      return res.status(401).json({ error: "Token expired" });
+    }
+    res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // 2. Search artist by name (for multi-select)
 router.get("/search-artists", async (req, res) => {
