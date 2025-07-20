@@ -1,9 +1,11 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8888",
+  baseURL: `${process.env.REACT_APP_BACKEND_URL}`,
   withCredentials: true
 });
+
+
 
 export const getTopArtists = () => api.get("/playlist/top-artists");
 
