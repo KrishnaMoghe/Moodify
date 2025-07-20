@@ -3,7 +3,7 @@ import LoginButton from "../components/LoginButton";
 import MoodSelector from "../components/MoodSelector";
 import ArtistSelector from "../components/ArtistSelector";
 import PlaylistResult from "../components/PlaylistResult";
-import { generatePlaylist, logout, getProfile } from "../api/spotify";
+import { generatePlaylist, logout } from "../api/spotify";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -11,29 +11,37 @@ export default function Home() {
   const [mood, setMood] = useState("");
   const [artists, setArtists] = useState([]);
   const [playlistUrl, setPlaylistUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // On load, check if profile info exists
   useEffect(() => {
     console.log("Current auth state:", { isAuthenticated, displayName });
-
-    // Check if cookies are present
     console.log("All cookies:", document.cookie);
+    
     const params = new URLSearchParams(window.location.search);
     const name = params.get("displayName");
+    
     if (name) {
+      // User just returned from Spotify OAuth
       setDisplayName(name);
       localStorage.setItem("displayName", name);
       setIsAuthenticated(true);
       window.history.replaceState({}, document.title, "/");
     } else if (localStorage.getItem("displayName")) {
+      // User was previously logged in
       setDisplayName(localStorage.getItem("displayName"));
       setIsAuthenticated(true);
     }
+    
+    setIsLoading(false);
   }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!mood || artists.length === 0) return alert("Pick mood and artist(s)!");
+    if (!mood || artists.length === 0) {
+      alert("Please select both mood and artist(s)!");
+      return;
+    }
+    
     try {
       const response = await generatePlaylist(
         mood,
@@ -41,7 +49,13 @@ export default function Home() {
       );
       setPlaylistUrl(response.data.playlistUrl);
     } catch (err) {
-      alert("Error generating playlist.");
+      console.error("Playlist generation error:", err);
+      if (err.response?.status === 401) {
+        alert("Session expired. Please log in again.");
+        handleLogout();
+      } else {
+        alert("Error generating playlist. Please try again.");
+      }
     }
   }
 
@@ -49,19 +63,50 @@ export default function Home() {
     logout().then(() => {
       localStorage.removeItem("displayName");
       setIsAuthenticated(false);
+      setDisplayName(null);
       setPlaylistUrl(null);
+      setMood("");
+      setArtists([]);
     });
   }
 
-  if (!isAuthenticated) return <LoginButton />;
-  if (playlistUrl) return <PlaylistResult url={playlistUrl} />;
+  // Show loading state
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  return (
-    <div>
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return (
       <div>
-        <b>Logged in as:</b> {displayName} {" "}
+        <h2>Welcome to Moodify!</h2>
+        <p>Login with Spotify to create personalized playlists based on your mood.</p>
+        <LoginButton />
+      </div>
+    );
+  }
+
+  // Show playlist result if generated
+  if (playlistUrl) {
+    return (
+      <div>
+        <PlaylistResult url={playlistUrl} />
+        <button onClick={() => setPlaylistUrl(null)}>Create Another Playlist</button>
         <button onClick={handleLogout}>Logout</button>
       </div>
+    );
+  }
+
+  // Show main form only when authenticated
+  return (
+    <div>
+      <div style={{ marginBottom: "20px" }}>
+        <strong>Logged in as:</strong> {displayName}
+        <button onClick={handleLogout} style={{ marginLeft: "10px" }}>
+          Logout
+        </button>
+      </div>
+      
       <form onSubmit={handleSubmit}>
         <MoodSelector mood={mood} setMood={setMood} />
         <br />
