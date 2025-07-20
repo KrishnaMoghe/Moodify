@@ -5,6 +5,17 @@ const api = axios.create({
   withCredentials: true
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.log("Authentication expired, redirecting to login");
+      localStorage.removeItem("displayName");
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
 
 
 export const getTopArtists = () => api.get("/playlist/top-artists");

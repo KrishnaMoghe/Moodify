@@ -14,6 +14,10 @@ export default function Home() {
 
   // On load, check if profile info exists
   useEffect(() => {
+    console.log("Current auth state:", { isAuthenticated, displayName });
+
+    // Check if cookies are present
+    console.log("All cookies:", document.cookie);
     const params = new URLSearchParams(window.location.search);
     const name = params.get("displayName");
     if (name) {

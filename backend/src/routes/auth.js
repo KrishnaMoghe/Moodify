@@ -16,15 +16,24 @@ router.get("/callback", async (req, res) => {
 
   try {
     const tokens = await getTokens(code);
-    // Retrieve basic user info to pass to frontend
     const profile = await getUserProfile(tokens.access_token);
 
-    // Set tokens as HttpOnly cookie (simplest)
-    res.cookie("access_token", tokens.access_token, { httpOnly: true, maxAge: 3600*1000 });
-    res.cookie("refresh_token", tokens.refresh_token, { httpOnly: true, maxAge: 30*24*3600*1000 });
+    // Set cookies with cross-site configuration
+    res.cookie("access_token", tokens.access_token, { 
+      httpOnly: true, 
+      secure: true,      // Required for HTTPS
+      sameSite: "None",  // Allow cross-site cookies
+      maxAge: 3600*1000 
+    });
+    res.cookie("refresh_token", tokens.refresh_token, { 
+      httpOnly: true, 
+      secure: true,
+      sameSite: "None",
+      maxAge: 30*24*3600*1000 
+    });
 
-    // Send profile and tokens to frontend (or redirect with short-lived state)
-    res.redirect(`${FRONTEND_URI}/?displayName=${encodeURIComponent(profile.display_name)}`);
+    // Redirect to your frontend (update this URL)
+    res.redirect(`http://localhost:3000/?displayName=${encodeURIComponent(profile.display_name)}`);
   } catch (err) {
     res.status(500).send("Error authenticating");
   }
