@@ -68,126 +68,34 @@ async function getUserTopArtists(accessToken, limit = 10) {
   return res.data.items;
 }
 
-// In backend/src/spotify/spotifyApi.js
-
 async function searchArtists(accessToken, query) {
-  console.log("=== SEARCH ARTISTS DEBUG ===");
-  console.log("Search query:", query);
-  
-  try {
-    const res = await axios.get(
-      'https://api.spotify.com/v1/search',
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        params: { q: query, type: "artist", limit: 5 }
-      }
-    );
-    
-    console.log("Search API response status:", res.status);
-    console.log("Found artists:", res.data.artists.items.length);
-    
-    // Debug each artist
-    res.data.artists.items.forEach((artist, index) => {
-      console.log(`Artist ${index}:`, {
-        id: artist.id,
-        name: artist.name,
-        popularity: artist.popularity,
-        href: artist.href
-      });
-    });
-    
-    return res.data.artists.items;
-  } catch (error) {
-    console.error("Search artists error:", error.response?.data);
-    throw error;
-  }
-}
-
-async function getUserTopArtists(accessToken, limit = 10) {
-  console.log("=== GET TOP ARTISTS DEBUG ===");
-  
-  try {
-    const res = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=' + limit, {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    
-    console.log("Top artists API response status:", res.status);
-    console.log("Found top artists:", res.data.items.length);
-    
-    // Debug each top artist
-    res.data.items.forEach((artist, index) => {
-      console.log(`Top Artist ${index}:`, {
-        id: artist.id,
-        name: artist.name,
-        popularity: artist.popularity
-      });
-    });
-    
-    return res.data.items;
-  } catch (error) {
-    console.error("Get top artists error:", error.response?.data);
-    throw error;
-  }
-}
-
-// In spotify/spotifyApi.js
-async function makeSpotifyRequest(accessToken, refreshToken, requestFn) {
-  try {
-    return await requestFn(accessToken);
-  } catch (error) {
-    if (error.response?.status === 401 && refreshToken) {
-      // Try to refresh token
-      const newTokens = await refreshAccessToken(refreshToken);
-      return await requestFn(newTokens.access_token);
+  const res = await get(
+    'https://api.spotify.com/v1/search',
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: { q: query, type: "artist", limit: 5 }
     }
-    throw error;
-  }
+  );
+  return res.data.artists.items;
 }
 
-// Verify this function in backend/src/spotify/spotifyApi.js
 async function getRecommendations(accessToken, artists, moodParams, limit = 20) {
-  console.log("=== GET RECOMMENDATIONS DEBUG ===");
-  console.log("Artists received:", artists);
-  console.log("Mood params:", moodParams);
-  
-  if (!artists || artists.length === 0) {
-    throw new Error("No artists provided for recommendations");
-  }
-  
-  // Ensure we have valid artist IDs
-  const validArtists = artists.filter(id => id && typeof id === 'string' && id.length > 0);
-  console.log("Valid artists after filtering:", validArtists);
-  
-  if (validArtists.length === 0) {
-    throw new Error("No valid artist IDs after filtering");
-  }
-  
-  const seed_artists = validArtists.slice(0, 5).join(',');
-  console.log("Seed artists string:", seed_artists);
-  
+  // Use up to 5 artist seed IDs
+  const seed_artists = artists.slice(0, 5).join(',');
   const params = {
     seed_artists,
     limit,
     ...moodParams,
   };
-  console.log("Request params:", params);
-  
-  try {
-    const res = await axios.get(
-      'https://api.spotify.com/v1/recommendations',
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        params
-      }
-    );
-    console.log("Spotify recommendations response status:", res.status);
-    return res.data.tracks;
-  } catch (error) {
-    console.error("Spotify recommendations API error:", error.response?.status, error.response?.data);
-    throw error;
-  }
+  const res = await get(
+    'https://api.spotify.com/v1/recommendations',
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params
+    }
+  );
+  return res.data.tracks;
 }
-
 
 async function createPlaylist(accessToken, userId, name, description) {
   const res = await post(
