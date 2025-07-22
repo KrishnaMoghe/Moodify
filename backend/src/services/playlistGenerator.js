@@ -1,6 +1,5 @@
-import SpotifyService from './spotifyService';
-import { validateMood, getMoodParameters, getMoodDescription } from './moodAnalyzer';
-
+const SpotifyService = require("./spotifyService");
+const MoodAnalyzer = require("./moodAnalyzer");
 class PlaylistGenerator {
   constructor(accessToken) {
     this.spotifyService = new SpotifyService(accessToken);
@@ -14,39 +13,51 @@ class PlaylistGenerator {
       playlistName = null,
       saveToSpotify = false
     } = options;
-
+  
     try {
-      if (!validateMood(mood)) {
+      if (!MoodAnalyzer.validateMood(mood)) {
         throw new Error(`Invalid mood: ${mood}`);
       }
-
-      const moodParams = getMoodParameters(mood);
-
+  
+      const moodParams = MoodAnalyzer.getMoodParameters(mood);
+  
       let seedArtists = [];
       if (includeUserTopArtists) {
         const topArtists = await this.spotifyService.getUserTopArtists(10);
         seedArtists = topArtists.map(artist => artist.id);
       }
-
+  
       if (customArtists.length > 0) {
         seedArtists = [...seedArtists, ...customArtists];
       }
-
+  
       seedArtists = seedArtists.slice(0, 5);
-
+  
       if (seedArtists.length === 0) {
         throw new Error('No seed artists available for recommendations');
       }
-
-      const tracks = await this.spotifyService.getRecommendations(
-        seedArtists,
-        moodParams,
-        limit
-      );
-
+  
+      // Use alternative recommendation method
+      let tracks;
+      try {
+        tracks = await this.spotifyService.getAlternativeRecommendations(
+          seedArtists,
+          moodParams,
+          limit
+        );
+      } catch (error) {
+        console.warn('Alternative recommendations failed, trying search-based approach...');
+        tracks = await this.spotifyService.getSearchBasedRecommendations(
+          seedArtists,
+          moodParams,
+          limit
+        );
+      }
+  
+      // Rest of your playlist creation logic remains the same...
       const playlist = {
         mood,
-        moodDescription: getMoodDescription(mood),
+        moodDescription: MoodAnalyzer.getMoodDescription(mood),
         tracks: tracks.map(track => ({
           id: track.id,
           name: track.name,
@@ -66,36 +77,39 @@ class PlaylistGenerator {
         })),
         parameters: moodParams,
         seedArtists,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        method: 'alternative_recommendation' // Track which method was used
       };
-
+  
+      // Playlist saving logic remains the same...
       if (saveToSpotify) {
         const user = await this.spotifyService.getUserProfile();
         const playlistTitle = playlistName || `Moodify - ${mood.charAt(0).toUpperCase() + mood.slice(1)}`;
-        const description = `Generated playlist for ${mood} mood • Created by Moodify`;
-
+        const description = `Generated playlist for ${mood} mood • Created by Moodify (Alternative Method)`;
+  
         const spotifyPlaylist = await this.spotifyService.createPlaylist(
           user.id,
           playlistTitle,
           description,
           false
         );
-
+  
         const trackUris = tracks.map(track => track.uri);
         await this.spotifyService.addTracksToPlaylist(spotifyPlaylist.id, trackUris);
-
+  
         playlist.spotifyPlaylist = {
           id: spotifyPlaylist.id,
           external_urls: spotifyPlaylist.external_urls,
           name: spotifyPlaylist.name
         };
       }
-
+  
       return playlist;
     } catch (error) {
       throw new Error(`Playlist generation failed: ${error.message}`);
     }
   }
+  
 }
 
-export default PlaylistGenerator;
+module.exports = PlaylistGenerator;

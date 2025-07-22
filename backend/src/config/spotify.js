@@ -1,17 +1,11 @@
-const SpotifyWebApi = require('spotify-web-api-node');
+const SpotifyService = require('../services/spotifyService');
 
+// Keep for backward compatibility in auth controller
 const createSpotifyApi = (accessToken = null) => {
-  const spotifyApi = new SpotifyWebApi({
-    clientId: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    redirectUri: process.env.REDIRECT_URI
-  });
-
-  if (accessToken) {
-    spotifyApi.setAccessToken(accessToken);
-  }
-
-  return spotifyApi;
+  return {
+    getAccessToken: () => accessToken,
+    setAccessToken: (token) => { accessToken = token; }
+  };
 };
 
 const scopes = [

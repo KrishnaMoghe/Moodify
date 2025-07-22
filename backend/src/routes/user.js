@@ -1,11 +1,11 @@
-import { Router } from 'express';
-import { authenticateSpotify } from '../middleware/authMiddleware';
-import { getProfile, getTopArtists } from '../controllers/userController';
+const express = require('express');
+const { authenticateSpotify } = require('../middleware/authMiddleware');
+const { getProfile, getTopArtists } = require('../controllers/userController');
 
-const router = Router();
+const router = express.Router();
 
 router.use(authenticateSpotify);
 router.get('/profile', getProfile);
 router.get('/top-artists', getTopArtists);
 
-export default router;
+module.exports = router;

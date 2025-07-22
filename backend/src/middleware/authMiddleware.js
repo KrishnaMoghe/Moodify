@@ -1,4 +1,4 @@
-import { createSpotifyApi } from '../config/spotify';
+const SpotifyService = require('../services/spotifyService');
 
 const authenticateSpotify = async (req, res, next) => {
   try {
@@ -12,15 +12,23 @@ const authenticateSpotify = async (req, res, next) => {
     }
 
     const accessToken = authHeader.split(' ')[1];
-    const spotifyApi = createSpotifyApi(accessToken);
+    
+    // Create SpotifyService instance to verify token
+    const spotifyService = new SpotifyService(accessToken);
 
     try {
-      await spotifyApi.getMe();
+      // Verify token by making a simple API call
+      const profile = await spotifyService.getUserProfile();
+      console.log('✅ Token verified for user:', profile.id);
+      
+      // Store the access token and service for use in routes
       req.spotifyAccessToken = accessToken;
-      req.spotifyApi = spotifyApi;
+      req.spotifyService = spotifyService;
       next();
     } catch (spotifyError) {
-      if (spotifyError.statusCode === 401) {
+      console.error('❌ Token verification failed:', spotifyError.message);
+      
+      if (spotifyError.message.includes('401')) {
         return res.status(401).json({
           error: 'Invalid or expired access token',
           message: 'Please re-authenticate with Spotify'
@@ -37,4 +45,4 @@ const authenticateSpotify = async (req, res, next) => {
   }
 };
 
-export default { authenticateSpotify };
+module.exports = { authenticateSpotify };

@@ -1,10 +1,14 @@
-import { Router } from 'express';
-import { authenticateSpotify } from '../middleware/authMiddleware';
-import { generatePlaylist, getMoods } from '../controllers/playlistController';
+const express = require('express');
+const { authenticateSpotify } = require('../middleware/authMiddleware');
 
-const router = Router();
+// Debug the controller import
+
+const playlistController = require('../controllers/playlistController');
+const { generatePlaylist, getMoods } = playlistController;
+
+const router = express.Router();
 
 router.get('/moods', getMoods);
 router.post('/generate', authenticateSpotify, generatePlaylist);
 
-export default router;
+module.exports = router;

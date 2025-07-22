@@ -1,10 +1,9 @@
-import { Router } from 'express';
-import { login, callback, refreshToken } from '../controllers/authController';
-
-const router = Router();
+const express = require('express');
+const { login, callback, refreshToken } = require('../controllers/authController');
+const router = express.Router();
 
 router.get('/login', login);
 router.get('/callback', callback);
 router.post('/refresh', refreshToken);
 
-export default router;
+module.exports = router;

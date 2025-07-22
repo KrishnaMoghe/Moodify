@@ -1,5 +1,5 @@
-import PlaylistGenerator from '../services/playlistGenerator';
-import { getAvailableMoods, getMoodDescription, getMoodParameters } from '../services/moodAnalyzer';
+const PlaylistGenerator = require('../services/playlistGenerator');
+const MoodAnalyzer = require('../services/moodAnalyzer');
 
 const generatePlaylist = async (req, res) => {
   try {
@@ -9,7 +9,7 @@ const generatePlaylist = async (req, res) => {
       return res.status(400).json({
         error: 'Missing mood parameter',
         message: 'Mood is required to generate playlist',
-        availableMoods: getAvailableMoods()
+        availableMoods: MoodAnalyzer.getAvailableMoods()
       });
     }
 
@@ -36,11 +36,11 @@ const generatePlaylist = async (req, res) => {
 
 const getMoods = (req, res) => {
   try {
-    const moods = getAvailableMoods().map(mood => ({
+    const moods = MoodAnalyzer.getAvailableMoods().map(mood => ({
       id: mood,
       name: mood.charAt(0).toUpperCase() + mood.slice(1),
-      description: getMoodDescription(mood),
-      parameters: getMoodParameters(mood)
+      description: MoodAnalyzer.getMoodDescription(mood),
+      parameters: MoodAnalyzer.getMoodParameters(mood)
     }));
 
     res.json({
@@ -56,7 +56,7 @@ const getMoods = (req, res) => {
   }
 };
 
-export default {
+module.exports = {
   generatePlaylist,
   getMoods
 };

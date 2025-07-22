@@ -4,11 +4,10 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth').default;
+const authRoutes = require('./routes/auth');
 const playlistRoutes = require('./routes/playlist');
 const userRoutes = require('./routes/user');
-const errorHandler = require('./middleware/errorHandler').default;
-
+const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 // Security middleware
